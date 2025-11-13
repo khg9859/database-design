@@ -72,7 +72,6 @@ export default function MyPage() {
     const dateStr = `${currentDate.getFullYear()}-${String(
       currentDate.getMonth() + 1
     ).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    
     return attendances.some((a) => {
       const attendDate = new Date(a.attended_at).toISOString().split("T")[0];
       return attendDate === dateStr;

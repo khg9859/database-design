@@ -12,8 +12,8 @@ app.use(express.json());
 const dbConfig = {
   host: 'localhost',
   user: 'root',
-  password: 'your_password', //MySQL비밀번호로~
-  database: 'HS_Health',
+  password: 'health2025', //MySQL비밀번호로~
+  database: 'hs_health',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
