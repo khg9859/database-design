@@ -5,6 +5,7 @@ import Notice from "./pages/Notice";
 import Mentoring from "./pages/mentoring/Mentoring";
 import Guide from "./pages/Guide";
 import MyPage from "./pages/MyPage";
+import IncentivePage from "./pages/Incentive"; //  추가
 import { MatchProvider } from "./pages/mentoring/MatchContext";
 import { Toaster } from "react-hot-toast"; // ✅ 추가
 
@@ -21,6 +22,7 @@ function App() {
             <Route path="/mentoring" element={<Mentoring />} />
             <Route path="/guide" element={<Guide />} />
             <Route path="/mypage" element={<MyPage />} />
+            <Route path="/incentive" element={<IncentivePage />} /> 
           </Routes>
 
           {/* ✅ 전역 Toast 알림 컨테이너 */}
