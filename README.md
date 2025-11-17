@@ -61,8 +61,10 @@ my-app/
 │   │       └── defaultProfile.png  # 기본 프로필 이미지
 │   │
 │   ├── components/
-│   │   └── mentoring/
-│   │       └── Navbar.jsx          # 상단 네비게이션 (공통)
+│   │   └── Navbar.jsx              # 상단 네비게이션 (공통)
+│   │
+│   ├── context/
+│   │   └── ThemeContext.jsx        # 🌓 전역 다크모드 테마 관리
 │   │
 │   ├── pages/
 │   │   ├── guide/                  # 🥗 헬스 가이드 모듈
@@ -82,7 +84,9 @@ my-app/
 │   │   │   └── Home.jsx            # (예비) 멘토링 소개 페이지
 │   │   │
 │   │   ├── Home.jsx                # 메인 홈 화면
-│   │   ├── MyPage.jsx              # 개인 정보 및 매칭 현황
+│   │   ├── MyPage.jsx              # 🧑 개인 정보 및 매칭 현황 (다크모드 지원)
+│   │   ├── Goal.jsx                # 🎯 목표 설정 및 운동 루틴
+│   │   ├── Class.jsx               # 📚 교양수업 시간표 및 헬스장 가용성 확인
 │   │   ├── Notice.jsx              # 공지사항
 │   │   └── App.css                 # 전역 스타일
 │   │
@@ -92,8 +96,157 @@ my-app/
 │   ├── reportWebVitals.js
 │   └── setupTests.js
 │
+├── server/                         # 🔧 백엔드 서버 (Express.js + MySQL)
+│   ├── server.js                   # Express 서버 및 REST API
+│   └── sql/
+│       ├── HS_Health.sql           # 데이터베이스 스키마
+│       ├── insert_class_data.sql   # 교양수업 더미 데이터
+│       └── README.md               # SQL 실행 가이드
+│
 ├── package.json
 ├── tailwind.config.js
 ├── postcss.config.js
 ├── .gitignore
 └── README.md
+
+---
+
+## 🆕 최신 업데이트 (gyu 브랜치)
+
+### 📚 **Class 페이지 - 교양수업 시간표 및 헬스장 가용성 확인**
+
+학교 교양수업 시간표를 확인하고, 현재 헬스장 이용 가능 여부를 실시간으로 보여주는 페이지입니다.
+
+#### 주요 기능:
+- **실시간 헬스장 가용성 체크**: 현재 교양수업 진행 중이면 인원 제한 표시 (약 30명)
+- **현재 진행 중인 수업 표시**: 지금 진행 중인 교양수업 정보 실시간 표시
+- **다음 수업 미리보기**: 다음 예정된 교양수업 시간 안내
+- **실시간 시계**: 1분마다 자동 업데이트되는 현재 시간
+- **다크모드 지원**: 페이지별 독립적인 다크모드 토글
+- **반응형 디자인**: Framer Motion 애니메이션과 함께 부드러운 UI/UX
+
+#### 기술 스택:
+```javascript
+// 실시간 시간 업데이트
+useEffect(() => {
+  const timer = setInterval(() => {
+    setCurrentTime(new Date());
+  }, 60000); // 1분마다 업데이트
+  return () => clearInterval(timer);
+}, []);
+
+// 현재 진행 중인 수업 확인
+const getCurrentClass = () => {
+  const now = currentTime;
+  const currentDay = ['일', '월', '화', '수', '목', '금', '토'][now.getDay()];
+  const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:00`;
+
+  for (const cls of classes) {
+    const schedules = classSchedules[cls.class_id] || [];
+    for (const schedule of schedules) {
+      if (schedule.day_of_week === currentDay) {
+        if (currentTimeStr >= schedule.start_time && currentTimeStr < schedule.end_time) {
+          return { class: cls, schedule };
+        }
+      }
+    }
+  }
+  return null;
+};
+```
+
+---
+
+### 🌓 **다크모드 시스템**
+
+#### ThemeContext (전역 테마 관리)
+- Context API를 활용한 전역 다크모드 상태 관리
+- localStorage에 테마 설정 저장으로 페이지 새로고침 시에도 유지
+- HTML 루트 요소에 `dark` 클래스 자동 추가/제거
+
+#### 페이지별 독립 다크모드
+각 페이지마다 독립적인 다크모드 토글 버튼을 제공합니다:
+
+1. **Class 페이지**: `classPageTheme` localStorage 키 사용
+2. **MyPage**: `myPageTheme` localStorage 키 사용
+3. **Mentoring 페이지**: 기존 독립 다크모드 유지
+4. **Guide 페이지**: 기존 독립 다크모드 유지
+
+```javascript
+// 페이지별 독립 다크모드 예시 (Class.jsx)
+const [isDark, setIsDark] = useState(() => {
+  const saved = localStorage.getItem('classPageTheme');
+  return saved ? saved === 'dark' : true;
+});
+
+useEffect(() => {
+  localStorage.setItem('classPageTheme', isDark ? 'dark' : 'light');
+}, [isDark]);
+```
+
+---
+
+### 🧑 **MyPage 개선사항**
+
+#### 새로운 기능:
+- **다크모드 토글**: 우측 상단에 독립적인 다크모드 스위치 추가
+- **Goal 컴포넌트 통합**: 목표 설정 및 운동 루틴 관리 기능 통합
+- **다크모드 테마 전달**: MyPage의 isDark 상태를 Goal 컴포넌트로 전달하여 일관된 테마 유지
+
+#### Goal.jsx (목표 관리 컴포넌트)
+- 부모(MyPage)로부터 `isDark` prop을 받아 테마 동기화
+- 운동 목표 설정 및 트래킹 기능
+- 다크모드 스타일 지원
+
+---
+
+### 🔧 **백엔드 서버 (server.js)**
+
+#### Express.js + MySQL REST API
+- **자동 더미 데이터 초기화**: 서버 시작 시 교양수업 데이터 자동 삽입
+- **교양수업 API 엔드포인트**:
+  - `GET /api/classes`: 모든 교양수업 조회
+  - `GET /api/class-schedules/:classId`: 특정 수업의 시간표 조회
+  - `POST /api/classes`: 새 교양수업 추가
+  - `PUT /api/classes/:id`: 수업 정보 수정
+  - `DELETE /api/classes/:id`: 수업 삭제
+
+#### 주요 테이블:
+- **Class**: 교양수업 정보 (과목명, 담당교수, 학점 등)
+- **Class_Schedule**: 수업 시간표 (요일, 시작/종료 시간)
+
+---
+
+### 📦 **의존성 추가**
+
+```json
+{
+  "dependencies": {
+    "express": "^4.21.2",
+    "mysql2": "^3.11.5",
+    "cors": "^2.8.5",
+    "react-hot-toast": "^2.4.1"
+  }
+}
+```
+
+- **express**: REST API 서버
+- **mysql2**: MySQL 데이터베이스 연결
+- **cors**: CORS 미들웨어
+- **react-hot-toast**: 토스트 알림 UI
+
+---
+
+### 🎨 **UI/UX 개선사항**
+
+1. **Framer Motion 애니메이션**: 부드러운 페이지 전환 및 카드 애니메이션
+2. **반응형 그라디언트 배경**: 다크/라이트 모드별 최적화된 배경색
+3. **실시간 상태 표시**: 펄스 애니메이션으로 현재 상태 강조
+4. **일관된 디자인 시스템**: Tailwind CSS 기반 통일된 스타일
+
+---
+
+## 🔄 **브랜치 정보**
+
+- **gyu 브랜치**: Class 페이지, 다크모드, 백엔드 서버 개발
+- **hong 브랜치**: gyu 브랜치 변경사항 머지 완료
