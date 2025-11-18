@@ -16,6 +16,7 @@ export default function Navbar() {
         <Link to="/notice" className="hover:text-gray-400 transition">공지사항</Link>
         <Link to="/mentoring" className="hover:text-gray-400 transition">멘토링 신청</Link>
         <Link to="/guide" className="hover:text-gray-400 transition">헬스 가이드</Link>
+        <Link to="/incentive" className="hover:text-gray-400 transition">포인트/퀘스트</Link>
         <Link to="/mypage" className="hover:text-gray-400 transition">마이페이지</Link>
       </div>
     </nav>
