@@ -2,23 +2,27 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Notice from "./pages/Notice";
+import Class from "./pages/Class";
 import Mentoring from "./pages/mentoring/Mentoring";
 import Guide from "./pages/Guide";
 import MyPage from "./pages/MyPage";
 import IncentivePage from "./pages/Incentive"; //  추가
 import { MatchProvider } from "./pages/mentoring/MatchContext";
-import { Toaster } from "react-hot-toast"; // ✅ 추가
+import { ThemeProvider } from "./context/ThemeContext";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
     <Router>
-      <MatchProvider>
-        <div className="min-h-screen flex flex-col">
-          <Navbar />
+      <ThemeProvider>
+        <MatchProvider>
+          <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 transition-colors duration-300">
+            <Navbar />
 
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/notice" element={<Notice />} />
+            <Route path="/class" element={<Class />} />
             <Route path="/mentoring" element={<Mentoring />} />
             <Route path="/guide" element={<Guide />} />
             <Route path="/mypage" element={<MyPage />} />
@@ -45,6 +49,7 @@ function App() {
           />
         </div>
       </MatchProvider>
+      </ThemeProvider>
     </Router>
   );
 }

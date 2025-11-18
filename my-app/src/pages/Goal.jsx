@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
-export default function Goal() {
+export default function Goal({ isDark = true }) {
   const [goals, setGoals] = useState([]);
   const [newGoal, setNewGoal] = useState("");
   const [targetDate, setTargetDate] = useState("");
@@ -116,18 +116,18 @@ export default function Goal() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-black text-white' : 'bg-white text-gray-900'}`}>
         <div className="text-xl">로딩 중...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
+    <div className={`${isDark ? 'bg-transparent text-white' : 'bg-transparent text-gray-900'} p-6`}>
       {/* 헤더 */}
       <div className="max-w-4xl mx-auto mb-8">
         <h1 className="text-4xl font-bold mb-2">목표 관리</h1>
-        <p className="text-gray-400">나의 운동 목표를 설정하고 달성해보세요</p>
+        <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>나의 운동 목표를 설정하고 달성해보세요</p>
       </div>
 
       <div className="max-w-4xl mx-auto">
@@ -136,7 +136,9 @@ export default function Goal() {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setShowAddForm(!showAddForm)}
-          className="w-full mb-6 py-4 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold text-lg transition flex items-center justify-center gap-2"
+          className={`w-full mb-6 py-4 rounded-lg font-semibold text-lg transition flex items-center justify-center gap-2 ${
+            isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'
+          }`}
         >
           <span className="text-2xl">+</span>
           새 목표 추가
