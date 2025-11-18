@@ -2,6 +2,124 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Goal from "./Goal";
 
+// 더미 데이터
+const DUMMY_USER = {
+  member_id: 1,
+  name: "김철수",
+  student_no: "20210001",
+  department: "체육학과",
+  grade: 4,
+  mypoints: 500
+};
+
+const DUMMY_EXERCISE_LOGS = [
+  {
+    log_id: 1,
+    performed_at: "2025-01-15T10:00:00",
+    exercise_name: "벤치프레스",
+    sets: 3,
+    reps: 10,
+    weight_kg: 80,
+    duration_minutes: 30
+  },
+  {
+    log_id: 2,
+    performed_at: "2025-01-15T10:30:00",
+    exercise_name: "스쿼트",
+    sets: 4,
+    reps: 12,
+    weight_kg: 100,
+    duration_minutes: 25
+  },
+  {
+    log_id: 3,
+    performed_at: "2025-01-13T14:00:00",
+    exercise_name: "데드리프트",
+    sets: 3,
+    reps: 8,
+    weight_kg: 120,
+    duration_minutes: 20
+  }
+];
+
+const DUMMY_DIET_LOGS = [
+  {
+    log_id: 1,
+    ate_at: "2025-01-15T08:00:00",
+    meal_type: "아침",
+    food_name: "닭가슴살 샐러드",
+    calories: 350,
+    amount: 1
+  },
+  {
+    log_id: 2,
+    ate_at: "2025-01-15T12:00:00",
+    meal_type: "점심",
+    food_name: "현미밥 + 제육볶음",
+    calories: 600,
+    amount: 1
+  },
+  {
+    log_id: 3,
+    ate_at: "2025-01-13T19:00:00",
+    meal_type: "저녁",
+    food_name: "연어 구이",
+    calories: 450,
+    amount: 1
+  }
+];
+
+const DUMMY_HEALTH_RECORDS = [
+  {
+    record_id: 1,
+    measured_at: "2025-01-15",
+    weight_kg: 75,
+    muscle_mass_kg: 32,
+    body_fat_percent: 15,
+    bmi: 22.5
+  },
+  {
+    record_id: 2,
+    measured_at: "2025-01-08",
+    weight_kg: 76,
+    muscle_mass_kg: 31.5,
+    body_fat_percent: 16,
+    bmi: 22.8
+  }
+];
+
+const DUMMY_ATTENDANCES = [
+  { attendance_id: 1, attended_at: "2025-01-13T09:00:00" },
+  { attendance_id: 2, attended_at: "2025-01-14T10:00:00" },
+  { attendance_id: 3, attended_at: "2025-01-15T09:30:00" },
+  { attendance_id: 4, attended_at: "2025-01-16T14:00:00" },
+  { attendance_id: 5, attended_at: "2025-01-17T11:00:00" }
+];
+
+const DUMMY_POINT_HISTORY = [
+  {
+    ledger_id: 1,
+    point_change: 100,
+    reason_type: "ACHIEVEMENT",
+    created_at: "2025-01-15T12:00:00",
+    description: "5일 연속 출석 달성"
+  },
+  {
+    ledger_id: 2,
+    point_change: 50,
+    reason_type: "ACHIEVEMENT",
+    created_at: "2025-01-14T12:00:00",
+    description: "목표 달성 보너스"
+  },
+  {
+    ledger_id: 3,
+    point_change: -200,
+    reason_type: "REWARD_USED",
+    created_at: "2025-01-10T15:00:00",
+    description: "리워드 교환"
+  }
+];
+
 export default function MyPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const [exerciseLogs, setExerciseLogs] = useState([]);
@@ -23,7 +141,7 @@ export default function MyPage() {
     localStorage.setItem('myPageTheme', isDark ? 'dark' : 'light');
   }, [isDark]);
 
-  // 데이터 로드
+  // 더미 데이터 로드
   useEffect(() => {
     loadAllData();
   }, []);
@@ -31,23 +149,16 @@ export default function MyPage() {
   const loadAllData = async () => {
     try {
       setLoading(true);
-      const memberId = 1;
-
-      const [user, exercises, diets, health, attendance, points] = await Promise.all([
-        fetch(`/api/members/${memberId}`).then(r => r.json()),
-        fetch(`/api/exercise-logs/${memberId}`).then(r => r.json()),
-        fetch(`/api/diet-logs/${memberId}`).then(r => r.json()),
-        fetch(`/api/health-records/${memberId}`).then(r => r.json()),
-        fetch(`/api/attendances/${memberId}`).then(r => r.json()),
-        fetch(`/api/point-ledger/${memberId}`).then(r => r.json())
-      ]);
-
-      setCurrentUser(user);
-      setExerciseLogs(exercises);
-      setDietLogs(diets);
-      setHealthRecords(health);
-      setAttendances(attendance);
-      setPointHistory(points);
+      
+      // 더미 데이터를 비동기처럼 로드 (실제 API 호출 시뮬레이션)
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setCurrentUser(DUMMY_USER);
+      setExerciseLogs(DUMMY_EXERCISE_LOGS);
+      setDietLogs(DUMMY_DIET_LOGS);
+      setHealthRecords(DUMMY_HEALTH_RECORDS);
+      setAttendances(DUMMY_ATTENDANCES);
+      setPointHistory(DUMMY_POINT_HISTORY);
     } catch (error) {
       console.error('데이터 로드 실패:', error);
     } finally {

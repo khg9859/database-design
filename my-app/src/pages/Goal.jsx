@@ -1,6 +1,31 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
+// 더미 목표 데이터
+const DUMMY_GOALS = [
+  {
+    goal_id: 1,
+    member_id: 1,
+    item_name: "벤치프레스 100kg 달성",
+    target_date: "2025-02-28",
+    is_achieved: false
+  },
+  {
+    goal_id: 2,
+    member_id: 1,
+    item_name: "체지방률 15% 이하",
+    target_date: "2025-03-31",
+    is_achieved: false
+  },
+  {
+    goal_id: 3,
+    member_id: 1,
+    item_name: "30일 연속 출석",
+    target_date: "2025-02-15",
+    is_achieved: true
+  }
+];
+
 export default function Goal({ isDark = true }) {
   const [goals, setGoals] = useState([]);
   const [newGoal, setNewGoal] = useState("");
@@ -8,7 +33,7 @@ export default function Goal({ isDark = true }) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  //데이터 갖고옴
+  // 더미 데이터 로드
   useEffect(() => {
     loadGoals();
   }, []);
@@ -16,14 +41,19 @@ export default function Goal({ isDark = true }) {
   const loadGoals = async () => {
     try {
       setLoading(true);
-      const memberId = 1; //실제는 로그인된
-
-      const response = await fetch(`/api/goals/${memberId}`);
-      const data = await response.json();
-      setGoals(data);
+      
+      // 로컬스토리지에서 먼저 확인
+      const savedGoals = localStorage.getItem('goals');
+      if (savedGoals) {
+        setGoals(JSON.parse(savedGoals));
+      } else {
+        // 없으면 더미 데이터 사용
+        setGoals(DUMMY_GOALS);
+        localStorage.setItem('goals', JSON.stringify(DUMMY_GOALS));
+      }
     } catch (error) {
       console.error('목표 로드 실패:', error);
-      setGoals([]);
+      setGoals(DUMMY_GOALS);
     } finally {
       setLoading(false);
     }
@@ -34,21 +64,18 @@ export default function Goal({ isDark = true }) {
     if (!newGoal.trim() || !targetDate) return;
 
     try {
-      const memberId = 1; // 실제로는 로그인된 사용자 ID
+      const newGoalData = {
+        goal_id: Date.now(),
+        member_id: 1,
+        item_name: newGoal,
+        target_date: targetDate,
+        is_achieved: false
+      };
 
-      const response = await fetch('/api/goals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          member_id: memberId,
-          item_name: newGoal,
-          target_date: targetDate,
-          is_achieved: false
-        })
-      });
-
-      const created = await response.json();
-      setGoals([...goals, created]);
+      const updatedGoals = [...goals, newGoalData];
+      setGoals(updatedGoals);
+      localStorage.setItem('goals', JSON.stringify(updatedGoals));
+      
       setNewGoal("");
       setTargetDate("");
       setShowAddForm(false);
@@ -61,19 +88,11 @@ export default function Goal({ isDark = true }) {
   // 목표 체크 토글
   const toggleGoal = async (goalId) => {
     try {
-      const goal = goals.find((g) => g.goal_id === goalId);
-
-      await fetch(`/api/goals/${goalId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_achieved: !goal.is_achieved })
-      });
-
-      setGoals(
-        goals.map((g) =>
-          g.goal_id === goalId ? { ...g, is_achieved: !g.is_achieved } : g
-        )
+      const updatedGoals = goals.map((g) =>
+        g.goal_id === goalId ? { ...g, is_achieved: !g.is_achieved } : g
       );
+      setGoals(updatedGoals);
+      localStorage.setItem('goals', JSON.stringify(updatedGoals));
     } catch (error) {
       console.error('목표 업데이트 실패:', error);
       alert('목표 업데이트에 실패했습니다.');
@@ -83,8 +102,9 @@ export default function Goal({ isDark = true }) {
   // 목표 삭제
   const deleteGoal = async (goalId) => {
     try {
-      await fetch(`/api/goals/${goalId}`, { method: 'DELETE' });
-      setGoals(goals.filter((g) => g.goal_id !== goalId));
+      const updatedGoals = goals.filter((g) => g.goal_id !== goalId);
+      setGoals(updatedGoals);
+      localStorage.setItem('goals', JSON.stringify(updatedGoals));
     } catch (error) {
       console.error('목표 삭제 실패:', error);
       alert('목표 삭제에 실패했습니다.');
@@ -116,7 +136,7 @@ export default function Goal({ isDark = true }) {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-black text-white' : 'bg-white text-gray-900'}`}>
+      <div className={`min-h-[400px] flex items-center justify-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
         <div className="text-xl">로딩 중...</div>
       </div>
     );
