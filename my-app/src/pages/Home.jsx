@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 export default function Home() {
   return (
     <div className="relative w-full h-screen bg-black text-white overflow-hidden">
@@ -19,10 +21,10 @@ export default function Home() {
           HSU GYM
         </h1>
 
-        <button className="bg-emerald-200 text-black font-semibold px-8 py-3 rounded-md shadow-md hover:bg-emerald-300 transition">
-          나의 포인트 현황 보러가기
-        </button>
-      </div> 
+        <Link to="/reward-shop" className="bg-emerald-200 text-black font-semibold px-8 py-3 rounded-md shadow-md hover:bg-emerald-300 transition inline-block">
+          나의 포인트 교환하러 가기
+        </Link>
+      </div>
 
       {/* 하단 고정 배너 */}
       <div className="absolute bottom-0 left-0 w-full bg-blue-700 text-white py-3 flex justify-around text-sm font-semibold">
