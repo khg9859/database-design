@@ -33,17 +33,29 @@ export default function Class() {
     try {
       setLoading(true);
 
-      const classesRes = await fetch('/api/classes');
-      const classesData = await classesRes.json();
-      setClasses(classesData);
+      // 더미 데이터 (API 서버 없이 작동)
+      const dummyClasses = [
+        { class_id: 1, class_name: '체육실기 A', instructor_name: '김교수', capacity: 30 },
+        { class_id: 2, class_name: '체육실기 B', instructor_name: '이교수', capacity: 25 },
+        { class_id: 3, class_name: '건강과 운동', instructor_name: '박교수', capacity: 35 }
+      ];
 
-      const schedules = {};
-      for (const cls of classesData) {
-        const scheduleRes = await fetch(`/api/class-schedules/${cls.class_id}`);
-        const scheduleData = await scheduleRes.json();
-        schedules[cls.class_id] = scheduleData;
-      }
-      setClassSchedules(schedules);
+      const dummySchedules = {
+        1: [
+          { schedule_id: 1, class_id: 1, day_of_week: '월', start_time: '09:00:00', end_time: '10:30:00' },
+          { schedule_id: 2, class_id: 1, day_of_week: '수', start_time: '09:00:00', end_time: '10:30:00' }
+        ],
+        2: [
+          { schedule_id: 3, class_id: 2, day_of_week: '화', start_time: '13:00:00', end_time: '14:30:00' },
+          { schedule_id: 4, class_id: 2, day_of_week: '목', start_time: '13:00:00', end_time: '14:30:00' }
+        ],
+        3: [
+          { schedule_id: 5, class_id: 3, day_of_week: '금', start_time: '15:00:00', end_time: '16:30:00' }
+        ]
+      };
+
+      setClasses(dummyClasses);
+      setClassSchedules(dummySchedules);
 
     } catch (error) {
       console.error('데이터 로드 실패:', error);
