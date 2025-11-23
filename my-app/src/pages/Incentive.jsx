@@ -34,8 +34,8 @@ function IncentivePage() {
     const handleCompleteQuest = (questId) => {
         const updatedQuests = quests.map(quest => {
             if (quest.id === questId && !quest.isCompleted) {
-                // 전역 포인트에 추가
-                addPoints(quest.points);
+                // 전역 포인트에 추가 (설명 포함)
+                addPoints(quest.points, quest.title);
                 return { ...quest, isCompleted: true };
             }
             return quest;

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { usePoints } from "../context/PointContext";
 
 // 더미 목표 데이터
 const DUMMY_GOALS = [
@@ -27,6 +28,7 @@ const DUMMY_GOALS = [
 ];
 
 export default function Goal({ isDark = true }) {
+  const { checkGoalBatchReward } = usePoints();
   const [goals, setGoals] = useState([]);
   const [newGoal, setNewGoal] = useState("");
   const [targetDate, setTargetDate] = useState("");
@@ -41,7 +43,7 @@ export default function Goal({ isDark = true }) {
   const loadGoals = async () => {
     try {
       setLoading(true);
-      
+
       // 로컬스토리지에서 먼저 확인
       const savedGoals = localStorage.getItem('goals');
       if (savedGoals) {
@@ -69,13 +71,33 @@ export default function Goal({ isDark = true }) {
         member_id: 1,
         item_name: newGoal,
         target_date: targetDate,
-        is_achieved: false
+        is_achieved: false,
+        achievement_id: null
       };
 
       const updatedGoals = [...goals, newGoalData];
       setGoals(updatedGoals);
       localStorage.setItem('goals', JSON.stringify(updatedGoals));
-      
+
+      // 배치 보상 체크 (목표 2개마다 80P)
+      const achievementId = checkGoalBatchReward(updatedGoals);
+
+      // achievement_id 연결 (2개 달성 시)
+      if (achievementId) {
+        const unrewardedGoals = updatedGoals.filter(g => !g.achievement_id);
+        const goalsToUpdate = unrewardedGoals.slice(0, 2);
+
+        const finalGoals = updatedGoals.map(goal => {
+          if (goalsToUpdate.find(g => g.goal_id === goal.goal_id)) {
+            return { ...goal, achievement_id: achievementId };
+          }
+          return goal;
+        });
+
+        setGoals(finalGoals);
+        localStorage.setItem('goals', JSON.stringify(finalGoals));
+      }
+
       setNewGoal("");
       setTargetDate("");
       setShowAddForm(false);
@@ -156,9 +178,8 @@ export default function Goal({ isDark = true }) {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setShowAddForm(!showAddForm)}
-          className={`w-full mb-6 py-4 rounded-lg font-semibold text-lg transition flex items-center justify-center gap-2 ${
-            isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'
-          }`}
+          className={`w-full mb-6 py-4 rounded-lg font-semibold text-lg transition flex items-center justify-center gap-2 ${isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'
+            }`}
         >
           <span className="text-2xl">+</span>
           새 목표 추가
@@ -242,10 +263,9 @@ export default function Goal({ isDark = true }) {
                     onClick={() => toggleGoal(goal.goal_id)}
                     className={`
                       flex-shrink-0 w-7 h-7 rounded border-2 flex items-center justify-center transition-all
-                      ${
-                        goal.is_achieved
-                          ? "bg-blue-600 border-blue-600"
-                          : "border-gray-600 hover:border-blue-500"
+                      ${goal.is_achieved
+                        ? "bg-blue-600 border-blue-600"
+                        : "border-gray-600 hover:border-blue-500"
                       }
                     `}
                   >
@@ -284,14 +304,13 @@ export default function Goal({ isDark = true }) {
                       <span
                         className={`
                           px-3 py-1 rounded-full font-semibold
-                          ${
-                            goal.is_achieved
-                              ? "bg-green-600 text-white"
-                              : getDday(goal.target_date) === "기한 만료"
+                          ${goal.is_achieved
+                            ? "bg-green-600 text-white"
+                            : getDday(goal.target_date) === "기한 만료"
                               ? "bg-red-600 text-white"
                               : getDday(goal.target_date) === "D-Day"
-                              ? "bg-yellow-600 text-white"
-                              : "bg-blue-600 text-white"
+                                ? "bg-yellow-600 text-white"
+                                : "bg-blue-600 text-white"
                           }
                         `}
                       >
@@ -324,7 +343,7 @@ export default function Goal({ isDark = true }) {
             ))
           ) : (
             <div className="text-center py-16 text-gray-500">
-              <div className="text-6xl mb-4">🎯</div>
+              <div className="text-6xl mb-4"></div>
               <p className="text-lg">아직 등록된 목표가 없습니다</p>
               <p className="text-sm mt-2">
                 위 버튼을 눌러 새 목표를 추가해보세요!
@@ -365,10 +384,10 @@ export default function Goal({ isDark = true }) {
                 <span className="font-bold">
                   {goals.length > 0
                     ? Math.round(
-                        (goals.filter((g) => g.is_achieved).length /
-                          goals.length) *
-                          100
-                      )
+                      (goals.filter((g) => g.is_achieved).length /
+                        goals.length) *
+                      100
+                    )
                     : 0}
                   %
                 </span>
@@ -377,13 +396,12 @@ export default function Goal({ isDark = true }) {
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{
-                    width: `${
-                      goals.length > 0
-                        ? (goals.filter((g) => g.is_achieved).length /
-                            goals.length) *
-                          100
-                        : 0
-                    }%`,
+                    width: `${goals.length > 0
+                      ? (goals.filter((g) => g.is_achieved).length /
+                        goals.length) *
+                      100
+                      : 0
+                      }%`,
                   }}
                   transition={{ duration: 1, ease: "easeOut" }}
                   className="bg-gradient-to-r from-blue-600 to-green-500 h-full rounded-full"
@@ -396,3 +414,4 @@ export default function Goal({ isDark = true }) {
     </div>
   );
 }
+

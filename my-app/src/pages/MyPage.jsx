@@ -15,6 +15,7 @@ import Goal from "./Goal";
 import WeightChart from "../components/WeightChart";
 import DailyRecordCard from "../components/DailyRecordCard";
 import { usePoints } from "../context/PointContext";
+import toast from 'react-hot-toast';
 
 // Chart.js 등록
 ChartJS.register(
@@ -462,7 +463,67 @@ const DUMMY_MEMBER_BADGES = [
 
 export default function MyPage() {
   // 전역 포인트 Context 사용
-  const { totalPoints } = usePoints();
+  const {
+    totalPoints,
+    achievementLogs,
+    checkExerciseBatchReward,
+    checkDietBatchReward,
+    checkAttendanceBatchReward
+  } = usePoints();
+
+  // 출석 체크 함수
+  const handleCheckIn = () => {
+    // 오늘 이미 출석했는지 확인
+    const today = new Date().toISOString().split('T')[0];
+    const alreadyCheckedIn = attendances.some(a => {
+      const attendDate = new Date(a.entered_at).toISOString().split('T')[0];
+      return attendDate === today;
+    });
+
+    if (alreadyCheckedIn) {
+      toast.error('오늘은 이미 출석했습니다!', {
+        icon: '⚠️',
+        duration: 3000
+      });
+      return;
+    }
+
+    const newAttendance = {
+      attendance_id: attendances.length + 1,
+      member_id: currentUser.member_id,
+      entered_at: new Date().toISOString(),
+      left_at: null,
+      attendance_type: '헬스장',
+      achievement_id: null
+    };
+
+    const updatedAttendances = [...attendances, newAttendance];
+    setAttendances(updatedAttendances);
+
+    // 출석 성공 알림
+    toast.success('출석 체크 완료!', {
+      icon: '✓',
+      duration: 2000
+    });
+
+    // 배치 보상 체크 (출석 10회마다 200P)
+    const achievementId = checkAttendanceBatchReward(updatedAttendances);
+
+    // achievement_id 연결 (10회 달성 시)
+    if (achievementId) {
+      const unrewardedLogs = updatedAttendances.filter(log => !log.achievement_id);
+      const logsToUpdate = unrewardedLogs.slice(0, 10);
+
+      const finalAttendances = updatedAttendances.map(attendance => {
+        if (logsToUpdate.find(a => a.attendance_id === attendance.attendance_id)) {
+          return { ...attendance, achievement_id: achievementId };
+        }
+        return attendance;
+      });
+
+      setAttendances(finalAttendances);
+    }
+  };
 
   const [currentUser, setCurrentUser] = useState(null);
   const [exerciseLogs, setExerciseLogs] = useState([]);
@@ -544,7 +605,27 @@ export default function MyPage() {
       achievement_id: null
     };
 
-    setExerciseLogs([...exerciseLogs, newLog]);
+    const updatedLogs = [...exerciseLogs, newLog];
+    setExerciseLogs(updatedLogs);
+
+    // 배치 보상 체크 (운동 5회마다)
+    const achievementId = checkExerciseBatchReward(updatedLogs);
+
+    // achievement_id 연결 (5회 달성 시)
+    if (achievementId) {
+      const unrewardedLogs = updatedLogs.filter(log => !log.achievement_id);
+      const logsToUpdate = unrewardedLogs.slice(0, 5);
+
+      const finalLogs = updatedLogs.map(log => {
+        if (logsToUpdate.find(l => l.exercise_log_id === log.exercise_log_id)) {
+          return { ...log, achievement_id: achievementId };
+        }
+        return log;
+      });
+
+      setExerciseLogs(finalLogs);
+    }
+
     setShowAddRecordModal(false);
   };
 
@@ -564,7 +645,27 @@ export default function MyPage() {
       achievement_id: null
     };
 
-    setDietLogs([...dietLogs, newLog]);
+    const updatedLogs = [...dietLogs, newLog];
+    setDietLogs(updatedLogs);
+
+    // 배치 보상 체크 (식단 3회마다)
+    const achievementId = checkDietBatchReward(updatedLogs);
+
+    // achievement_id 연결 (3회 달성 시)
+    if (achievementId) {
+      const unrewardedLogs = updatedLogs.filter(log => !log.achievement_id);
+      const logsToUpdate = unrewardedLogs.slice(0, 3);
+
+      const finalLogs = updatedLogs.map(log => {
+        if (logsToUpdate.find(l => l.diet_log_id === log.diet_log_id)) {
+          return { ...log, achievement_id: achievementId };
+        }
+        return log;
+      });
+
+      setDietLogs(finalLogs);
+    }
+
     setShowAddRecordModal(false);
   };
 
@@ -710,6 +811,17 @@ export default function MyPage() {
             <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} text-lg`}>{currentUser.name}님의 활동 기록</p>
           </div>
           <div className="flex items-center gap-4">
+            {/* 출석 체크 버튼 */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleCheckIn}
+              className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-xl font-bold text-white shadow-lg transition flex items-center gap-2"
+            >
+              <span className="text-2xl">✓</span>
+              <span>출석 체크</span>
+            </motion.button>
+
             {/* 다크모드 토글 */}
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -1475,7 +1587,7 @@ export default function MyPage() {
                 }`}>
                 <div className="flex items-center justify-between">
                   <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent flex items-center gap-3">
-                    <span className="text-4xl">🎯</span> 목표 관리
+                    <span className="text-4xl"></span> 목표 관리
                   </h2>
                   <motion.button
                     whileHover={{ scale: 1.1, rotate: 90 }}
