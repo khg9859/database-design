@@ -14,6 +14,7 @@ import {
 import Goal from "./Goal";
 import WeightChart from "../components/WeightChart";
 import DailyRecordCard from "../components/DailyRecordCard";
+import { usePoints } from "../context/PointContext";
 
 // Chart.js 등록
 ChartJS.register(
@@ -460,6 +461,9 @@ const DUMMY_MEMBER_BADGES = [
 ];
 
 export default function MyPage() {
+  // 전역 포인트 Context 사용
+  const { totalPoints } = usePoints();
+
   const [currentUser, setCurrentUser] = useState(null);
   const [exerciseLogs, setExerciseLogs] = useState([]);
   const [dietLogs, setDietLogs] = useState([]);
@@ -903,7 +907,7 @@ export default function MyPage() {
             <div className="relative z-10">
               <h3 className="text-lg font-semibold mb-2 text-white/90">나의 포인트</h3>
               <p className="text-5xl font-extrabold mb-2">
-                {(currentUser.total_points || 0).toLocaleString()}P
+                {totalPoints.toLocaleString()}P
               </p>
               <p className="text-sm text-white/80">클릭하여 내역 확인 →</p>
             </div>
